@@ -11,7 +11,7 @@ require_sandbox_install
 printf 'keep me\n' > "$TEST_SANDBOX_PI_HOME/user-note.txt"
 # User-edited managed path must be preserved with warning and backed up.
 printf '\nuser edit\n' >> "$TEST_SANDBOX_PI_HOME/prompts/f5.md"
-bash "$ROOT_DIR/uninstall.sh" --yes --keep-packages >/tmp/repack-uninstall.out 2>&1
+bash "$ROOT_DIR/uninstall.sh" --yes >/tmp/repack-uninstall.out 2>&1
 grep -F 'File berubah oleh pengguna' /tmp/repack-uninstall.out
 [[ -f "$TEST_SANDBOX_PI_HOME/user-note.txt" ]]
 [[ -f "$TEST_SANDBOX_PI_HOME/prompts/f5.md" ]]
@@ -19,4 +19,8 @@ grep -F 'File berubah oleh pengguna' /tmp/repack-uninstall.out
 [[ ! -f "$TEST_SANDBOX_PI_HOME/.repackmyskill/state.json" ]]
 [[ "$(grep -Fxc '<!-- REPACKMYSKILL:START -->' "$TEST_SANDBOX_PI_HOME/AGENTS.md" || true)" == 0 ]]
 grep -Fx 'sandbox user rule' "$TEST_SANDBOX_PI_HOME/AGENTS.md"
+if pi list | grep -Fq 'npm:pi-9router-ext@0.2.2'; then
+  echo 'Pinned package still present after official uninstall' >&2
+  exit 1
+fi
 echo TEST_UNINSTALL=PASS

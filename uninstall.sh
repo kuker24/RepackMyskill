@@ -94,6 +94,11 @@ if [[ "$KEEP_PACKAGES" == 1 ]]; then
 elif [[ "$DRY_RUN" == 1 ]]; then
   log_info 'Package yang dipasang RepackMyskill akan dihapus memakai pi remove'
 else
+  # `pi remove` changes Pi package metadata. Record only metadata files before
+  # official package removal; package source is removed by Pi itself.
+  for metadata in "$PI_HOME/settings.json" "$PI_HOME/package.json" "$PI_HOME/package-lock.json"; do
+    transaction_record_path "$metadata"
+  done
   mapfile -t added_packages < <(python3 - "$STATE_PATH" <<'PY'
 import json,sys
 for item in json.load(open(sys.argv[1])).get('packages_installed_by_repack',[]): print(item)
