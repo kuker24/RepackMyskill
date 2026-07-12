@@ -1,0 +1,13 @@
+{
+  "allow_tools": [],
+  "plan": {
+    "model": "",
+    "thinking": "high"
+  },
+  "execute": {
+    "model": "",
+    "thinking": ""
+  },
+  "plans_dir": "plans",
+  "bash_allowlist": true
+}

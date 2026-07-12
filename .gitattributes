@@ -1,0 +1,2 @@
+# Preserve checksum-locked third-party patch bytes; its upstream formatting has tabs.
+payload/todotools/todotools-security.patch whitespace=-space-before-tab

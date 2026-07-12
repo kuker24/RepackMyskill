@@ -1,0 +1,283 @@
+{
+  "schema_version": "1.0.0",
+  "generated_at": "2026-07-12T05:19:29+07:00",
+  "pi_home": "/home/fahmiagent/.pi/agent",
+  "packages": [
+    {
+      "id": "pi-9router-ext",
+      "source": "npm",
+      "specifier": "npm:pi-9router-ext@0.2.2",
+      "version": "0.2.2",
+      "status": "FOUND",
+      "evidence": "npm/package-lock.json"
+    },
+    {
+      "id": "@tintinweb/pi-subagents",
+      "source": "npm",
+      "specifier": "npm:@tintinweb/pi-subagents@0.13.0",
+      "version": "0.13.0",
+      "status": "FOUND",
+      "evidence": "npm/package-lock.json"
+    },
+    {
+      "id": "pi-plan-extension",
+      "source": "npm",
+      "specifier": "npm:pi-plan-extension@0.1.0",
+      "version": "0.1.0",
+      "status": "FOUND",
+      "evidence": "npm/package-lock.json"
+    }
+  ],
+  "git_sources": [
+    {
+      "id": "pi-todotools",
+      "url": "https://github.com/code-yeongyu/pi-todotools.git",
+      "commit": "93ba67efa5a7358356a829569365bb017a8ad498",
+      "source_path": "git/github.com/code-yeongyu/pi-todotools",
+      "selection": [
+        "checkout"
+      ],
+      "status": "FOUND",
+      "package_version": "0.1.1",
+      "local_patch_strategy": "verified_lockfile",
+      "verified_lockfile_sha256": "dcf0f4defb744d4b0d619d54b982463810d8926a89e40741d9a75cf2572750d4",
+      "upstream_lockfile_sha256": "7996d22ffba202660791e3ffeb1ae5b1c1a69e34bcb924d8be0b204a112f9a5d",
+      "backup_patch_provenance": {
+        "path": "backups/todotools-security-patch/todotools-security.patch",
+        "sha256": "c6f29463dddf3388321f5f51463deb80e434511b889ab0cbffcf2e58bf735b6f",
+        "included": false
+      }
+    },
+    {
+      "id": "astralforge",
+      "url": "https://github.com/kuker24/AstralForge-Senior-Engineer-Skills.git",
+      "commit": "3f59d793a2691a95e63355f91adaeb72a7120fac",
+      "source_path": "vendor/astralforge",
+      "selection": [
+        "skills/full-debug",
+        "skills/full-review",
+        "skills/full-test",
+        "skills/full-security",
+        "skills/full-architecture-review",
+        "skills/full-dependency-audit",
+        "skills/full-performance-audit",
+        "skills/full-api-testing",
+        "skills/lint-and-validate",
+        "skills/deployment-procedures",
+        "skills/api-patterns",
+        "skills/database-design",
+        "skills/frontend-design",
+        "skills/react-best-practices",
+        "skills/typescript",
+        "skills/python-patterns"
+      ],
+      "status": "FOUND",
+      "local_transform": "Copy each selected directory to skills/astral-<name> and change only SKILL.md frontmatter name to astral-<name>."
+    },
+    {
+      "id": "mattpocock-skills",
+      "url": "https://github.com/mattpocock/skills.git",
+      "commit": "391a2701dd948f94f56a39f7533f8eea9a859c87",
+      "source_path": "vendor/mattpocock-skills",
+      "selection": [
+        "skills/productivity/grill-me",
+        "skills/productivity/grilling"
+      ],
+      "status": "FOUND"
+    },
+    {
+      "id": "impeccable",
+      "url": "npm:impeccable",
+      "commit": null,
+      "source_path": "skills/impeccable",
+      "selection": [
+        "skills/impeccable"
+      ],
+      "status": "FOUND",
+      "cli_version": "3.2.1",
+      "skill_version": "3.9.1",
+      "install_command": "npx impeccable@3.2.1 skills install -y --providers=pi --scope=global --no-hooks"
+    }
+  ],
+  "custom_files": [
+    "AGENTS.md",
+    "pi-plan-extension.json",
+    "agents/fable-luna.md",
+    "agents/fable-sol.md",
+    "agents/fable-terra.md",
+    "extensions/fable-plan-guard/index.ts",
+    "prompts/f5.md",
+    "prompts/fl.md",
+    "prompts/fs.md",
+    "prompts/ft.md",
+    "prompts/peta-auto.md",
+    "prompts/simpan-progres.md",
+    "prompts/lanjut-proyek.md",
+    "prompts/senior-auto.md",
+    "prompts/impeccable.md",
+    "prompts/grill-me.md",
+    "skills/fable-core/SKILL.md",
+    "skills/fable-auto/SKILL.md",
+    "skills/peta-auto/SKILL.md",
+    "skills/senior-engineer-auto/SKILL.md"
+  ],
+  "custom_directories": [
+    {
+      "path": "agents",
+      "selection": [
+        "fable-luna.md",
+        "fable-sol.md",
+        "fable-terra.md"
+      ]
+    },
+    {
+      "path": "extensions/fable-plan-guard",
+      "selection": [
+        "index.ts"
+      ]
+    },
+    {
+      "path": "prompts",
+      "selection": [
+        "f5.md",
+        "fl.md",
+        "fs.md",
+        "ft.md",
+        "peta-auto.md",
+        "simpan-progres.md",
+        "lanjut-proyek.md",
+        "senior-auto.md",
+        "impeccable.md",
+        "grill-me.md"
+      ]
+    },
+    {
+      "path": "skills",
+      "selection": [
+        "fable-core",
+        "fable-auto",
+        "peta-auto",
+        "senior-engineer-auto"
+      ]
+    }
+  ],
+  "excluded_paths": [
+    ".env",
+    ".env.*",
+    "*.key",
+    "*.pem",
+    "secrets/",
+    "auth.json",
+    "9router-config.json",
+    "settings.json",
+    "backups/",
+    "sessions/",
+    "logs/",
+    "cache/",
+    "tmp/",
+    "node_modules/",
+    "npm/",
+    "git/",
+    "vendor/",
+    ".git/",
+    ".pi-runtime/",
+    "dist/",
+    "build/",
+    "coverage/",
+    "runtime databases",
+    "session history",
+    "conversation logs",
+    "project .pi/HANDOFF.md",
+    "project .pi/EVIDENCE.md"
+  ],
+  "required_commands": [
+    "pi",
+    "node",
+    "npm",
+    "npx",
+    "git",
+    "sha256sum",
+    "jq or python3"
+  ],
+  "required_runtime": {
+    "pi_coding_agent": {
+      "minimum_version": null,
+      "audited_version": "0.80.6"
+    },
+    "node": {
+      "minimum_version": "20.0.0",
+      "audited_version": "24.18.0"
+    },
+    "npm": {
+      "minimum_version": null,
+      "audited_version": "11.16.0"
+    },
+    "environment_variables": [
+      {
+        "name": "PI_CODING_AGENT_DIR",
+        "required": false,
+        "default": "$HOME/.pi/agent"
+      }
+    ]
+  },
+  "security_requirements": [
+    "Never copy or print API keys, tokens, credentials, passwords, cookies, Authorization headers, 9Router account configuration, session history, conversation logs, caches, backups, runtime databases, or private user data.",
+    "Do not include settings.json, auth.json, or 9router-config.json from the source machine.",
+    "Do not include node_modules, npm package cache, full Git package checkouts, full vendor repositories, vendor .git directories, dist, build output, or coverage.",
+    "Install exact package versions and exact Git commits from this lock.",
+    "For pi-todotools, verify the safe lockfile SHA-256 before npm ci; never run npm audit fix --force.",
+    "For AstralForge and Matt Pocock sources, extract only the listed skill directories.",
+    "During Plan Mode planning phase, fable-plan-guard must block Agent and any tool name containing subagent.",
+    "Merge AGENTS.md safely and preserve FABLE-WORKFLOW-INTEGRATION marker blocks."
+  ],
+  "verification_commands": [
+    {
+      "cwd": "$PI_HOME/git/github.com/code-yeongyu/pi-todotools",
+      "command": "git rev-parse HEAD",
+      "expected": "93ba67efa5a7358356a829569365bb017a8ad498"
+    },
+    {
+      "cwd": "$PI_HOME/git/github.com/code-yeongyu/pi-todotools",
+      "command": "sha256sum package-lock.json",
+      "expected": "dcf0f4defb744d4b0d619d54b982463810d8926a89e40741d9a75cf2572750d4"
+    },
+    {
+      "cwd": "$PI_HOME/git/github.com/code-yeongyu/pi-todotools",
+      "command": "npm audit --omit=dev",
+      "expected": "0 vulnerabilities",
+      "audited_result": "PASS"
+    },
+    {
+      "cwd": "$PI_HOME/git/github.com/code-yeongyu/pi-todotools",
+      "command": "npm run typecheck",
+      "expected": "exit 0",
+      "audited_result": "PASS"
+    },
+    {
+      "cwd": "$PI_HOME/git/github.com/code-yeongyu/pi-todotools",
+      "command": "npm test",
+      "expected": "3 test files and 12 tests pass",
+      "audited_result": "PASS"
+    },
+    {
+      "cwd": "$PI_HOME/vendor/astralforge",
+      "command": "git rev-parse HEAD",
+      "expected": "3f59d793a2691a95e63355f91adaeb72a7120fac"
+    },
+    {
+      "cwd": "$PI_HOME/vendor/mattpocock-skills",
+      "command": "git rev-parse HEAD",
+      "expected": "391a2701dd948f94f56a39f7533f8eea9a859c87"
+    },
+    {
+      "cwd": "$REPOSITORY_ROOT",
+      "command": "jq empty manifest/source-lock.json",
+      "expected": "exit 0"
+    },
+    {
+      "cwd": "$PI_HOME",
+      "command": "sha256sum --check $REPOSITORY_ROOT/manifest/custom-files.sha256",
+      "expected": "all entries OK"
+    }
+  ]
+}

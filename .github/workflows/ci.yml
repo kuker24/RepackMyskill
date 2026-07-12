@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install ShellCheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: ShellCheck
+        run: shellcheck install.sh doctor.sh update.sh uninstall.sh rollback.sh scripts/lib/*.sh tests/*.sh
+      - name: Static tests
+        run: bash tests/test-static.sh
+      - name: Shell syntax
+        run: find . -type f -name '*.sh' -not -path './.git/*' -print0 | xargs -0 -n1 bash -n
+      - name: JSON validation
+        run: for file in manifest/*.json; do python3 -m json.tool "$file" >/dev/null; done
+      - name: Payload checksum
+        run: sha256sum --check manifest/payload.sha256
+      - name: Installer dry-run
+        run: |
+          mkdir -p .ci-bin
+          cat > .ci-bin/pi <<'EOF'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          case "${1:-}" in
+            --help|list) exit 0 ;;
+            *) printf 'CI Pi stub supports dry-run validation only\n' >&2; exit 1 ;;
+          esac
+          EOF
+          chmod +x .ci-bin/pi
+          PATH="$PWD/.ci-bin:$PATH" bash install.sh --dry-run --yes

@@ -1,0 +1,33 @@
+# Secrets and credentials
+.env
+.env.*
+*.key
+*.pem
+secrets/
+auth.json
+9router-config.json
+settings.json
+
+# Recovery, runtime, and private state
+backups/
+.pi/
+.pi-runtime/
+logs/
+sessions/
+cache/
+tmp/
+*.db
+*.sqlite
+*.sqlite3
+
+# Dependencies and package caches
+node_modules/
+npm/
+
+# Upstream checkout staging; fetch selectively during install
+vendor/
+
+# Generated output
+dist/
+build/
+coverage/

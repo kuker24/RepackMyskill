@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "https://github.com/kuker24/AstralForge-Senior-Engineer-Skills.git",
+  "commit": "3f59d793a2691a95e63355f91adaeb72a7120fac",
+  "skills": [
+    {
+      "source_directory": "skills/full-debug",
+      "destination_directory": "skills/astral-full-debug",
+      "destination_name": "astral-full-debug",
+      "transform": { "frontmatter_name": "astral-full-debug" }
+    },
+    {
+      "source_directory": "skills/full-review",
+      "destination_directory": "skills/astral-full-review",
+      "destination_name": "astral-full-review",
+      "transform": { "frontmatter_name": "astral-full-review" }
+    },
+    {
+      "source_directory": "skills/full-test",
+      "destination_directory": "skills/astral-full-test",
+      "destination_name": "astral-full-test",
+      "transform": { "frontmatter_name": "astral-full-test" }
+    },
+    {
+      "source_directory": "skills/full-security",
+      "destination_directory": "skills/astral-full-security",
+      "destination_name": "astral-full-security",
+      "transform": { "frontmatter_name": "astral-full-security" }
+    },
+    {
+      "source_directory": "skills/full-architecture-review",
+      "destination_directory": "skills/astral-full-architecture-review",
+      "destination_name": "astral-full-architecture-review",
+      "transform": { "frontmatter_name": "astral-full-architecture-review" }
+    },
+    {
+      "source_directory": "skills/full-dependency-audit",
+      "destination_directory": "skills/astral-full-dependency-audit",
+      "destination_name": "astral-full-dependency-audit",
+      "transform": { "frontmatter_name": "astral-full-dependency-audit" }
+    },
+    {
+      "source_directory": "skills/full-performance-audit",
+      "destination_directory": "skills/astral-full-performance-audit",
+      "destination_name": "astral-full-performance-audit",
+      "transform": { "frontmatter_name": "astral-full-performance-audit" }
+    },
+    {
+      "source_directory": "skills/full-api-testing",
+      "destination_directory": "skills/astral-full-api-testing",
+      "destination_name": "astral-full-api-testing",
+      "transform": { "frontmatter_name": "astral-full-api-testing" }
+    },
+    {
+      "source_directory": "skills/lint-and-validate",
+      "destination_directory": "skills/astral-lint-and-validate",
+      "destination_name": "astral-lint-and-validate",
+      "transform": { "frontmatter_name": "astral-lint-and-validate" }
+    },
+    {
+      "source_directory": "skills/deployment-procedures",
+      "destination_directory": "skills/astral-deployment-procedures",
+      "destination_name": "astral-deployment-procedures",
+      "transform": { "frontmatter_name": "astral-deployment-procedures" }
+    },
+    {
+      "source_directory": "skills/api-patterns",
+      "destination_directory": "skills/astral-api-patterns",
+      "destination_name": "astral-api-patterns",
+      "transform": { "frontmatter_name": "astral-api-patterns" }
+    },
+    {
+      "source_directory": "skills/database-design",
+      "destination_directory": "skills/astral-database-design",
+      "destination_name": "astral-database-design",
+      "transform": { "frontmatter_name": "astral-database-design" }
+    },
+    {
+      "source_directory": "skills/frontend-design",
+      "destination_directory": "skills/astral-frontend-design",
+      "destination_name": "astral-frontend-design",
+      "transform": { "frontmatter_name": "astral-frontend-design" }
+    },
+    {
+      "source_directory": "skills/react-best-practices",
+      "destination_directory": "skills/astral-react-best-practices",
+      "destination_name": "astral-react-best-practices",
+      "transform": { "frontmatter_name": "astral-react-best-practices" }
+    },
+    {
+      "source_directory": "skills/typescript",
+      "destination_directory": "skills/astral-typescript",
+      "destination_name": "astral-typescript",
+      "transform": { "frontmatter_name": "astral-typescript" }
+    },
+    {
+      "source_directory": "skills/python-patterns",
+      "destination_directory": "skills/astral-python-patterns",
+      "destination_name": "astral-python-patterns",
+      "transform": { "frontmatter_name": "astral-python-patterns" }
+    }
+  ]
+}
