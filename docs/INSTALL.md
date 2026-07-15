@@ -6,7 +6,8 @@ Installer tidak memasang Pi Coding Agent. Siapkan:
 
 - Pi Coding Agent (`pi` pada `PATH`)
 - Bash, Git, Python 3, dan `sha256sum`
-- Node.js 20 atau lebih baru
+- Node.js 22 atau lebih baru
+- FFmpeg 7 atau lebih baru, FFprobe, dan Chrome/Chromium untuk HyperFrames render
 - npm dan npx
 - jaringan ke npm dan source Git yang dipin
 
@@ -22,7 +23,7 @@ PI_HOME=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}
 bash install.sh --dry-run --yes
 ```
 
-Dry-run memverifikasi checksum payload, JSON, prerequisite, pin, dan rencana operasi. Tidak membaca `pi list` karena beberapa versi Pi memperbarui metadata saat command itu dijalankan. Tidak membuat backup, directory, clone, package install, atau file di `PI_HOME`.
+Dry-run memverifikasi checksum payload, JSON, prerequisite Node.js/FFmpeg/FFprobe, pin, dan rencana operasi. Tidak membaca `pi list` karena beberapa versi Pi memperbarui metadata saat command itu dijalankan. Tidak membuat backup, directory, clone, package install, atau file di `PI_HOME`. Dry-run memvalidasi format pin integrity HyperFrames; instalasi nyata mencocokkan `npm view hyperframes@0.7.54 dist.integrity` sebelum mutasi target.
 
 ## Instalasi
 
@@ -66,6 +67,8 @@ State hanya berisi versi/pin, managed path + checksum, marker, skip component, b
 - `grill-me` dan `grilling` dari commit `391a2701dd948f94f56a39f7533f8eea9a859c87`
 - Impeccable CLI `3.2.1`, provider Pi, global scope, tanpa hooks
 - custom agent, prompt, Plan guard, Fable/Peta/Senior skill
+- 20 skill HyperFrames native dari commit `ccf5f20b3beea2b245c398a89cb686077b546de2` dan wrapper CLI `hyperframes@0.7.54` dengan check `npm dist.integrity` SHA-512 sebelum eksekusi
+- extension Fable Agent Compatibility yang menghapus forced worktree isolation hanya untuk `fable-luna`, `fable-sol`, dan `fable-terra`
 - marker block RepackMyskill pada `AGENTS.md`; teks di luar marker dipertahankan
 
 ## Doctor
@@ -75,7 +78,7 @@ bash doctor.sh
 bash doctor.sh --json
 ```
 
-`doctor.sh` read-only. Check mencakup prerequisite, Node 20, state, checksum payload, custom file, marker, package pin, Todo audit, Fable/Peta/Senior/Plan guard, prompt, 16 Astral skill, Grill Me/Grilling, Impeccable kecuali di-skip, dan secret-pattern pada repository. Exit code nonzero bila ada `FAIL`.
+`doctor.sh` read-only. Check mencakup prerequisite, Node 22, state, checksum payload, custom file, marker, package pin, Todo audit, Fable/Peta/Senior/Plan guard/Fable Agent Compatibility, prompt, 16 Astral skill, 20 HyperFrames skill, FFmpeg 7+, FFprobe, browser render, Grill Me/Grilling, Impeccable kecuali di-skip, dan secret-pattern pada repository. Exit code nonzero bila ada `FAIL`.
 
 ## Update
 
@@ -135,6 +138,10 @@ Installer berhenti untuk melindungi isi pengguna. Pastikan terdapat maksimal sat
 <!-- REPACKMYSKILL:START -->
 <!-- REPACKMYSKILL:END -->
 ```
+
+### FFmpeg/FFprobe atau integrity HyperFrames gagal
+
+Pasang FFmpeg 7+ beserta FFprobe. Untuk integrity mismatch, periksa koneksi npm dan manifest pin; jangan mengganti versi CLI atau melewati check.
 
 ### Network sementara gagal
 

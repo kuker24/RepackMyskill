@@ -45,12 +45,17 @@ while (($#)); do
   shift
 done
 
-for required in bash git node npm npx pi python3 sha256sum; do
+for required in bash git node npm npx pi python3 sha256sum ffmpeg ffprobe; do
   require_command "$required"
 done
 node_major=$(node -p 'Number(process.versions.node.split(".")[0])')
 [[ "$node_major" =~ ^[0-9]+$ ]] || die "Versi Node.js tidak dapat dibaca"
-(( node_major >= 20 )) || die "Node.js minimal versi 20; ditemukan $(node --version)"
+(( node_major >= 22 )) || die "Node.js minimal versi 22 untuk HyperFrames; ditemukan $(node --version)"
+ffmpeg_version=$(ffmpeg -version 2>/dev/null | awk 'NR == 1 {print $3; exit}')
+[[ "$ffmpeg_version" =~ ([0-9]+) ]] || die "Versi FFmpeg tidak dapat dibaca"
+ffmpeg_major=${BASH_REMATCH[1]}
+(( ffmpeg_major >= 7 )) || die "FFmpeg minimal versi 7 untuk HyperFrames; ditemukan $ffmpeg_version"
+ffprobe -version >/dev/null 2>&1 || die "FFprobe diperlukan untuk HyperFrames"
 resolve_pi_home
 
 verify_payload() {
@@ -66,6 +71,7 @@ verify_payload() {
     "$ROOT_DIR/payload/todotools/todotools-security.patch"
   python3 -m json.tool "$ROOT_DIR/manifest/source-lock.json" >/dev/null
   python3 -m json.tool "$ROOT_DIR/manifest/astral-selection.json" >/dev/null
+  python3 -m json.tool "$ROOT_DIR/manifest/hyperframes-selection.json" >/dev/null
   python3 - "$ROOT_DIR/manifest/astral-selection.json" <<'PY'
 import json, sys
 skills=json.load(open(sys.argv[1]))['skills']
@@ -75,6 +81,44 @@ PY
 }
 
 verify_payload
+
+read_hyperframes_cli_pin() {
+  python3 - "$ROOT_DIR/manifest/hyperframes-selection.json" <<'PY'
+import json, re, sys
+cli=json.load(open(sys.argv[1], encoding='utf-8')).get('cli', {})
+package=cli.get('package', '')
+version=cli.get('version', '')
+integrity=cli.get('integrity', '')
+if not re.fullmatch(r'[a-z0-9][a-z0-9._-]*(?:/[a-z0-9][a-z0-9._-]*)?', package):
+    raise SystemExit('Package HyperFrames tidak valid')
+if not re.fullmatch(r'\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?', version):
+    raise SystemExit('Versi HyperFrames tidak valid')
+if not re.fullmatch(r'sha512-[A-Za-z0-9+/]+={0,2}', integrity):
+    raise SystemExit('Integrity HyperFrames tidak valid')
+print(package)
+print(version)
+print(integrity)
+PY
+}
+
+verify_hyperframes_cli_integrity() {
+  local pin package version integrity actual
+  mapfile -t pin < <(read_hyperframes_cli_pin)
+  (( ${#pin[@]} == 3 )) || die "Pin CLI HyperFrames tidak lengkap"
+  package=${pin[0]}
+  version=${pin[1]}
+  integrity=${pin[2]}
+
+  if [[ "$DRY_RUN" == 1 ]]; then
+    log_info "HyperFrames CLI pin valid: $package@$version ($integrity)"
+    return 0
+  fi
+
+  actual=$(npm view "$package@$version" dist.integrity) || die "Tidak dapat membaca integrity npm untuk $package@$version"
+  [[ "$actual" == "$integrity" ]] || die "Integrity npm HyperFrames tidak sesuai untuk $package@$version"
+  log_info "Integrity npm HyperFrames terverifikasi: $package@$version"
+}
+
 TEMP_DIR=$(mktemp -d "${TMPDIR:-/tmp}/repackmyskill.XXXXXXXX")
 BACKUP_DIR="$PI_HOME/backups/repackmyskill-$(date +%Y%m%d-%H%M%S)-$$"
 
@@ -88,6 +132,8 @@ elif [[ "$ASSUME_YES" != 1 ]]; then
   read -r answer
   [[ "$answer" =~ ^[Yy]$ ]] || die "Instalasi dibatalkan"
 fi
+
+verify_hyperframes_cli_integrity
 
 if [[ "$DRY_RUN" != 1 ]]; then
   # Read local Pi command contract before package mutation; official removal uses
@@ -215,6 +261,44 @@ print('Astral verification: 16/16')
 PY
 }
 
+install_hyperframes() {
+  local repo commit clone_dir cli_pin cli_package cli_version
+  repo=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["repository"])' "$ROOT_DIR/manifest/hyperframes-selection.json")
+  commit=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["commit"])' "$ROOT_DIR/manifest/hyperframes-selection.json")
+  mapfile -t cli_pin < <(read_hyperframes_cli_pin)
+  cli_package=${cli_pin[0]}
+  cli_version=${cli_pin[1]}
+  clone_dir="$TEMP_DIR/hyperframes"
+  if [[ "$DRY_RUN" == 1 ]]; then
+    log_info "HyperFrames: clone $repo @ $commit; salin tepat 20 skill native Pi"
+    return 0
+  fi
+  retry_once git clone --no-checkout --filter=blob:none -- "$repo" "$clone_dir"
+  git -C "$clone_dir" checkout --detach "$commit"
+  [[ "$(git -C "$clone_dir" rev-parse HEAD)" == "$commit" ]] || die "Commit HyperFrames tidak sesuai"
+  while IFS= read -r skill; do
+    [[ -f "$clone_dir/skills/$skill/SKILL.md" ]] || die "Skill HyperFrames hilang: $skill"
+    prune_stale_source_owned_tree "$clone_dir/skills/$skill" "$PI_HOME/skills/$skill" "$STATE_PATH" 'hyperframes_managed_files'
+    sync_source_owned_tree "$clone_dir/skills/$skill" "$PI_HOME/skills/$skill"
+  done < <(python3 - "$ROOT_DIR/manifest/hyperframes-selection.json" <<'PY'
+import json,sys
+items=json.load(open(sys.argv[1]))['skills']
+if len(items) != 20 or len(set(items)) != 20: raise SystemExit('Selection HyperFrames harus tepat 20 skill unik')
+for item in items: print(item)
+PY
+)
+  python3 - "$ROOT_DIR/manifest/hyperframes-selection.json" "$PI_HOME" <<'PY'
+import json,pathlib,re,sys
+items=json.load(open(sys.argv[1]))['skills']; root=pathlib.Path(sys.argv[2])
+for name in items:
+ path=root/'skills'/name/'SKILL.md'
+ if not path.is_file() or not re.search(rf'(?m)^name:\s*{re.escape(name)}\s*$',path.read_text()):
+  raise SystemExit(f'HyperFrames skill validation failed: {path}')
+print('HyperFrames verification: 20/20')
+PY
+  retry_once env HYPERFRAMES_NO_TELEMETRY=1 HYPERFRAMES_NO_UPDATE_CHECK=1 npx --yes "$cli_package@$cli_version" browser ensure
+}
+
 install_grill() {
   local repo='https://github.com/mattpocock/skills.git' commit='391a2701dd948f94f56a39f7533f8eea9a859c87'
   local clone_dir="$TEMP_DIR/mattpocock-skills"
@@ -251,6 +335,10 @@ PY
 
 install_custom_payload() {
   local source relative
+  if [[ "$DRY_RUN" == 1 ]]; then
+    log_info "Custom payload: file dan marker merge tervalidasi tanpa mutasi PI_HOME"
+    return 0
+  fi
   while IFS= read -r -d '' source; do
     relative=${source#"$ROOT_DIR/payload/custom/"}
     [[ "$relative" == 'AGENTS.md' ]] && continue
@@ -261,12 +349,12 @@ install_custom_payload() {
 
 build_state() {
   local state_input="$TEMP_DIR/state.json"
-  python3 - "$ROOT_DIR" "$PI_HOME" "$state_input" "$BACKUP_DIR" "$SKIP_ASTRAL" "$SKIP_GRILL" "$SKIP_IMPECCABLE" "$TX_PACKAGES_FILE" <<'PY'
+  python3 - "$ROOT_DIR" "$PI_HOME" "$state_input" "$BACKUP_DIR" "$TEMP_DIR/hyperframes/skills" "$SKIP_ASTRAL" "$SKIP_GRILL" "$SKIP_IMPECCABLE" "$TX_PACKAGES_FILE" <<'PY'
 import datetime, hashlib, json, os, sys
 from pathlib import Path
-root, pi, out, backup = map(Path, sys.argv[1:5])
-skip_astral,skip_grill,skip_impeccable=(x=='1' for x in sys.argv[5:8])
-packages_added=Path(sys.argv[8]).read_text().splitlines() if Path(sys.argv[8]).exists() else []
+root, pi, out, backup, hyperframes_source = map(Path, sys.argv[1:6])
+skip_astral,skip_grill,skip_impeccable=(x=='1' for x in sys.argv[6:9])
+packages_added=Path(sys.argv[9]).read_text().splitlines() if Path(sys.argv[9]).exists() else []
 def digest(p):
  if p.is_symlink(): raise SystemExit(f'Symlink managed path: {p}')
  return hashlib.sha256(p.read_bytes()).hexdigest()
@@ -277,7 +365,13 @@ def add_tree(paths,p):
  if p.is_symlink(): raise SystemExit(f'Symlink managed tree: {p}')
  for q in sorted(p.rglob('*')):
   if q.is_file(): add_path(paths,q)
+def add_source_tree(paths,source,destination):
+ if source.is_symlink() or any(p.is_symlink() for p in source.rglob('*')):
+  raise SystemExit(f'Symlink source tree: {source}')
+ for q in sorted(source.rglob('*')):
+  if q.is_file(): add_path(paths,destination/q.relative_to(source))
 managed=[]
+hyperframes_managed=[]
 for source in sorted((root/'payload/custom').rglob('*')):
  if source.is_file() and source.relative_to(root/'payload/custom').as_posix() != 'AGENTS.md': add_path(managed,pi/source.relative_to(root/'payload/custom'))
 add_path(managed,pi/'AGENTS.md')
@@ -287,6 +381,9 @@ if not skip_astral:
 if not skip_grill:
  add_tree(managed,pi/'skills/grill-me'); add_tree(managed,pi/'skills/grilling')
 if not skip_impeccable: add_tree(managed,pi/'skills/impeccable')
+for skill in json.loads((root/'manifest/hyperframes-selection.json').read_text())['skills']:
+ add_source_tree(hyperframes_managed,hyperframes_source/skill,pi/'skills'/skill)
+managed.extend(hyperframes_managed)
 packages=[x['specifier'] for x in json.loads((root/'manifest/source-lock.json').read_text())['packages']]
 packages.append('git:github.com/code-yeongyu/pi-todotools@93ba67efa5a7358356a829569365bb017a8ad498')
 previous=[]
@@ -301,12 +398,13 @@ state={
  'repository':'https://github.com/kuker24/RepackMyskill.git',
  'package_specs':packages,
  'packages_installed_by_repack':packages_added,
- 'third_party_commits':{'pi-todotools':'93ba67efa5a7358356a829569365bb017a8ad498','astralforge':'3f59d793a2691a95e63355f91adaeb72a7120fac','mattpocock-skills':'391a2701dd948f94f56a39f7533f8eea9a859c87','impeccable_cli':'3.2.1'},
+ 'third_party_commits':{'pi-todotools':'93ba67efa5a7358356a829569365bb017a8ad498','astralforge':'3f59d793a2691a95e63355f91adaeb72a7120fac','mattpocock-skills':'391a2701dd948f94f56a39f7533f8eea9a859c87','hyperframes':'ccf5f20b3beea2b245c398a89cb686077b546de2','hyperframes_cli':'0.7.54','impeccable_cli':'3.2.1'},
  'managed_files':managed,
+ 'hyperframes_managed_files':hyperframes_managed,
  'agents_marker':{'start':'<!-- REPACKMYSKILL:START -->','end':'<!-- REPACKMYSKILL:END -->','count':1},
  'backup_directory':str(backup),
  'skipped_components':{'astral':skip_astral,'grill':skip_grill,'impeccable':skip_impeccable},
- 'verification':{'payload_sha256':'PASS','custom_files':'PASS','todotools_audit':'PASS','astral':'SKIP' if skip_astral else 'PASS','grill':'SKIP' if skip_grill else 'PASS','impeccable':'SKIP' if skip_impeccable else 'PASS'}
+ 'verification':{'payload_sha256':'PASS','custom_files':'PASS','todotools_audit':'PASS','hyperframes':'PASS','astral':'SKIP' if skip_astral else 'PASS','grill':'SKIP' if skip_grill else 'PASS','impeccable':'SKIP' if skip_impeccable else 'PASS'}
 }
 out.write_text(json.dumps(state,indent=2,sort_keys=True)+'\n')
 PY
@@ -317,6 +415,7 @@ install_pi_packages
 configure_todotools
 if [[ "$SKIP_ASTRAL" == 1 ]]; then log_warn "AstralForge dilewati"; else install_astral; fi
 if [[ "$SKIP_GRILL" == 1 ]]; then log_warn "Grill Me dilewati"; else install_grill; fi
+install_hyperframes
 if [[ "$SKIP_IMPECCABLE" == 1 ]]; then log_warn "Impeccable dilewati"; else install_impeccable; fi
 install_custom_payload
 if [[ "$DRY_RUN" != 1 ]]; then

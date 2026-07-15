@@ -1,0 +1,39 @@
+{
+  "schema_version": "1.0.0",
+  "repository": "https://github.com/heygen-com/hyperframes.git",
+  "commit": "ccf5f20b3beea2b245c398a89cb686077b546de2",
+  "license": "Apache-2.0",
+  "cli": {
+    "package": "hyperframes",
+    "version": "0.7.54",
+    "integrity": "sha512-WP5TFPQpMMMNcYehjxwVIAgmIHSGrxiqosLsZNqOq5n+4q/4umOMnEcfqmsa3/GCX+TWtYVlcPTMbwpK/J40Ew==",
+    "node": ">=22"
+  },
+  "skills": [
+    "embedded-captions",
+    "faceless-explainer",
+    "figma",
+    "general-video",
+    "hyperframes",
+    "hyperframes-animation",
+    "hyperframes-cli",
+    "hyperframes-core",
+    "hyperframes-creative",
+    "hyperframes-keyframes",
+    "hyperframes-registry",
+    "media-use",
+    "motion-graphics",
+    "music-to-video",
+    "pr-to-video",
+    "product-launch-video",
+    "remotion-to-hyperframes",
+    "slideshow",
+    "talking-head-recut",
+    "website-to-video"
+  ],
+  "documentation": [
+    "https://hyperframes.heygen.com/quickstart",
+    "https://hyperframes.heygen.com/llms.txt",
+    "https://github.com/heygen-com/hyperframes"
+  ]
+}

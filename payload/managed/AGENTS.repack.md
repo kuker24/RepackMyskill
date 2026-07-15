@@ -12,6 +12,10 @@ Untuk setiap tugas software engineering, gunakan `skills/fable-auto/SKILL.md`.
 - Jangan memberi tugas sama kepada beberapa agent atau membiarkan subagent memanggil subagent.
 - Jangan meminta pengguna memilih agent kecuali pengguna ingin memilih sendiri.
 
+## Fable Agent Compatibility
+
+Extension `extensions/fable-agent-compat/index.ts` menghapus `isolation` yang dipaksakan upstream hanya untuk `fable-luna`, `fable-sol`, dan `fable-terra`. Agent lain tidak diubah. Muat ulang Pi setelah instalasi agar extension aktif.
+
 ## Peta Auto
 
 Untuk tugas nontrivial pada repository yang belum dikenal, gunakan `skills/peta-auto/SKILL.md` untuk memahami struktur, entry point, command, kontrak, dan aturan lokal. Jangan memetakan ulang bila peta masih valid. Perbarui AGENTS.md proyek hanya jika struktur, kontrak, workflow, command penting, atau batas domain berubah.
@@ -48,6 +52,17 @@ Gunakan `todowrite` dan `todoread` sebagai mekanisme koordinasi semua tugas mult
 ## Grill Me
 
 Skill `grill-me` adalah entry point dan skill `grilling` berisi workflow utama. Gunakan keduanya: cari fakta dari repository, tanyakan keputusan satu per satu, sertakan rekomendasi, dan jangan menjalankan rencana sampai pengguna menyatakan pemahaman sudah sama.
+
+## HyperFrames
+
+Untuk setiap permintaan membuat, mengedit, menganimasikan, preview, lint, check, atau render video/motion graphic berbasis HTML, muat skill `hyperframes` lebih dulu. Gunakan HyperFrames sebagai default, bukan React atau Remotion, kecuali pengguna meminta tool lain secara eksplisit.
+
+- Muat `hyperframes-core` sebelum menulis composition HTML.
+- Gunakan `hyperframes-animation` untuk GSAP, Lottie, Three.js, SVG, Canvas, CSS, WAAPI, atau WebGL.
+- Composition wajib memakai atribut composition/clip/track yang benar, timeline paused dan seekable, serta deterministic rendering.
+- Gunakan wrapper global `hyperframes` untuk `init`, `preview`, `lint`, `check`, `doctor`, dan `render`; wrapper memverifikasi SHA-512 pin `hyperframes@0.7.54` sebelum eksekusi.
+- Jalankan `lint` dan `check` sebelum render. Jangan menjalankan render produksi tanpa permintaan pengguna.
+- Workflow tersedia: `general-video`, `motion-graphics`, `website-to-video`, `slideshow`, `product-launch-video`, dan workflow upstream lain yang terpasang.
 
 ## Safety
 

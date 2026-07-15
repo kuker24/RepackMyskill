@@ -48,7 +48,7 @@ check_command() {
 for command in bash git node npm npx pi python3 sha256sum; do check_command "$command"; done
 if command_exists node; then
   node_major=$(node -p 'Number(process.versions.node.split(".")[0])' 2>/dev/null || printf 0)
-  if [[ "$node_major" =~ ^[0-9]+$ ]] && ((node_major >= 20)); then record PASS node_version "$(node --version)"; else record FAIL node_version 'Node.js >=20 required'; fi
+  if [[ "$node_major" =~ ^[0-9]+$ ]] && ((node_major >= 22)); then record PASS node_version "$(node --version)"; else record FAIL node_version 'Node.js >=22 required by HyperFrames'; fi
 fi
 
 if [[ -f "$ROOT_DIR/manifest/payload.sha256" ]] && (cd "$ROOT_DIR" && sha256sum --check manifest/payload.sha256 >/dev/null 2>&1); then
@@ -91,6 +91,35 @@ for path in \
   'prompts/f5.md' 'prompts/fl.md' 'prompts/fs.md' 'prompts/ft.md' 'prompts/peta-auto.md' 'prompts/senior-auto.md' 'prompts/impeccable.md' 'prompts/grill-me.md'; do
   if [[ -f "$PI_HOME/$path" ]]; then record PASS "file:$path" 'present'; else record FAIL "file:$path" 'missing'; fi
 done
+
+if [[ -x "$PI_HOME/bin/hyperframes" ]]; then record PASS hyperframes_cli 'pinned wrapper available'; else record FAIL hyperframes_cli 'bin/hyperframes missing or not executable'; fi
+hyperframes_count=0
+if [[ -f "$ROOT_DIR/manifest/hyperframes-selection.json" ]]; then
+  while IFS= read -r skill; do
+    if [[ -f "$PI_HOME/skills/$skill/SKILL.md" ]]; then
+      record PASS "hyperframes_skill:$skill" 'present'
+      hyperframes_count=$((hyperframes_count + 1))
+    else
+      record FAIL "hyperframes_skill:$skill" 'missing'
+    fi
+  done < <(python3 - "$ROOT_DIR/manifest/hyperframes-selection.json" <<'PY'
+import json,sys
+for item in json.load(open(sys.argv[1]))['skills']: print(item)
+PY
+)
+fi
+if [[ "$hyperframes_count" == 20 ]]; then record PASS hyperframes_skills '20 selected skills present'; else record FAIL hyperframes_skills "expected=20 actual=$hyperframes_count"; fi
+
+if command_exists ffmpeg; then
+  ffmpeg_major=$(ffmpeg -version 2>/dev/null | sed -nE '1s/^ffmpeg version (n)?([0-9]+).*/\2/p')
+  if [[ "$ffmpeg_major" =~ ^[0-9]+$ ]] && ((ffmpeg_major >= 7)); then record PASS ffmpeg_version "$(ffmpeg -version 2>/dev/null | head -n 1)"; else record FAIL ffmpeg_version 'FFmpeg >=7 required for HyperFrames render'; fi
+else
+  record FAIL ffmpeg_version 'ffmpeg missing'
+fi
+if command_exists ffprobe; then record PASS ffprobe 'available'; else record FAIL ffprobe 'missing'; fi
+if [[ -x "$PI_HOME/bin/hyperframes" ]]; then
+  if HYPERFRAMES_NO_TELEMETRY=1 HYPERFRAMES_NO_UPDATE_CHECK=1 "$PI_HOME/bin/hyperframes" browser path >/dev/null 2>&1; then record PASS hyperframes_browser 'render browser available'; else record FAIL hyperframes_browser 'run: hyperframes browser ensure'; fi
+fi
 
 astral_count=$(find "$PI_HOME/skills" -maxdepth 2 -path '*/astral-*/SKILL.md' -type f 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$astral_count" == 16 ]]; then record PASS astral_skills '16 present'; else record FAIL astral_skills "expected=16 actual=$astral_count"; fi

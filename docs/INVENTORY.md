@@ -1,6 +1,6 @@
 # Phase 1 — Inventory dan Source Lock
 
-Audit dilakukan terhadap `PI_HOME=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}` yang saat audit ter-resolve menjadi `/home/fahmiagent/.pi/agent`. Audit tidak membaca atau menyalin konfigurasi akun, credential, session, log, cache, backup, `node_modules`, runtime database, atau data privat.
+Audit menggunakan kontrak dinamis `PI_HOME=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}`. Path home mesin audit tidak dibundel. Audit tidak membaca atau menyalin konfigurasi akun, credential, session, log, cache, backup, `node_modules`, runtime database, atau data privat.
 
 ## Ringkasan
 
@@ -35,6 +35,7 @@ Audit dilakukan terhadap `PI_HOME=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}` yang 
 | Impeccable prompt | `prompts/impeccable.md` | Salin file custom | n/a | FOUND | Salin | Senior Engineer Auto mengutamakan Impeccable untuk task UI/UX. |
 | Plan config | `pi-plan-extension.json` | Salin file custom setelah package Plan Mode terpasang | schema/config lokal | FOUND | Salin | JSON valid; `bash_allowlist` aktif. |
 | Fable Plan guard | `extensions/fable-plan-guard/index.ts` | Salin extension custom | n/a | FOUND | Salin | Pada `planning`, hook `tool_call` memblokir `toolName === "agent"` atau nama yang memuat `subagent`; hook `before_agent_start` juga menyuntikkan larangan mutasi. |
+| Fable Agent Compatibility | `extensions/fable-agent-compat/index.ts` | Salin extension custom | n/a | FOUND | Salin | Hook `tool_call` menghapus `isolation` hanya untuk `fable-luna`, `fable-sol`, dan `fable-terra`, sehingga bug upstream single-literal worktree tidak memengaruhi Agent lain. |
 | Grill Me entry point | `skills/grill-me/` | Ambil selektif dari vendor Matt Pocock | vendor commit di bawah | FOUND | Upstream Git selektif | `SKILL.md` hanya mengarahkan ke sesi `/grilling`; tetap dibutuhkan sebagai entry point. |
 | Grilling workflow | `skills/grilling/` | Ambil selektif dari vendor Matt Pocock | vendor commit di bawah | FOUND | Upstream Git selektif | Berisi workflow interview utama; kedua skill wajib. |
 | Grill prompt | `prompts/grill-me.md` | Salin file custom | n/a | FOUND | Salin | Memanggil skill `grilling`. |
@@ -96,14 +97,14 @@ Pilihan paling reproducible: **checkout commit upstream lalu bawa/gunakan lockfi
 
 ## Urutan instalasi yang diperlukan
 
-1. Verifikasi runtime: Pi Coding Agent, Node.js `>=20`, npm, npx, Git, dan utilitas SHA-256; `jq` atau Python dipakai untuk validasi manifest.
+1. Verifikasi runtime: Pi Coding Agent, Node.js `>=22`, npm, npx, Git, FFmpeg `>=7`, FFprobe, dan utilitas SHA-256; `jq` atau Python dipakai untuk validasi manifest.
 2. Tentukan `PI_HOME=${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}` dan buat backup aman di luar payload repository sebelum merge konfigurasi global.
 3. Pasang package npm terkunci: `pi-9router-ext@0.2.2`, `@tintinweb/pi-subagents@0.13.0`, lalu `pi-plan-extension@0.1.0`.
 4. Checkout Todo Tools pada commit terkunci, pasang lockfile aman dengan hash terkunci, jalankan `npm ci`, lalu jalankan audit, typecheck, dan 12 test.
 5. Checkout AstralForge pada commit terkunci; ekstrak hanya 16 skill; rename direktori dengan prefix `astral-` dan patch hanya field `name:`.
 6. Jalankan instalasi Impeccable persis dengan CLI `3.2.1` dan opsi `--no-hooks`; validasi metadata skill yang dihasilkan tetap `3.9.1` untuk source lock ini.
 7. Checkout vendor Matt Pocock pada commit terkunci; ekstrak hanya `grill-me` dan `grilling`.
-8. Salin file/direktori custom Fable, Peta, Senior Auto, prompts, `pi-plan-extension.json`, dan Plan guard. Merge `AGENTS.md` secara marker-aware; jangan menimpa aturan pengguna diam-diam.
+8. Salin file/direktori custom Fable, Peta, Senior Auto, prompts, `pi-plan-extension.json`, Plan guard, dan Fable Agent Compatibility. Merge `AGENTS.md` secara marker-aware; jangan menimpa aturan pengguna diam-diam.
 9. Muat ulang Pi, lalu verifikasi package, agent, prompt, skill, Plan guard, marker workflow, dan command Todo Tools.
 10. Konfigurasi 9Router dilakukan pengguna lewat environment/config privat terpisah. Jangan mengambil konfigurasi akun dari mesin sumber.
 
@@ -111,6 +112,7 @@ Pilihan paling reproducible: **checkout commit upstream lalu bawa/gunakan lockfi
 
 - **Plan dependency:** `fable-plan-guard` membutuhkan event custom `pi-plan-extension`; package Plan Mode harus tersedia lebih dulu.
 - **Plan enforcement:** aturan prompt saja tidak cukup. Guard extension merupakan kontrol runtime yang memblokir Agent/subagent saat fase planning.
+- **Fable isolation compatibility:** Agent schema `@tintinweb/pi-subagents@0.13.0` dapat memaksa worktree lewat optional single-literal `isolation`; compatibility extension menghapus field sebelum execution hanya untuk Luna/Sol/Terra.
 - **Agent dependency:** routing Fable membutuhkan package subagents dan tiga file agent bernama tepat.
 - **Senior dependency:** `fable-auto`, `f5`, dan `AGENTS.md` mengarahkan task nontrivial ke `senior-engineer-auto`.
 - **Impeccable dependency:** Senior Engineer Auto menunjuk lokasi global `skills/impeccable` dan script di dalamnya.
@@ -118,6 +120,7 @@ Pilihan paling reproducible: **checkout commit upstream lalu bawa/gunakan lockfi
 - **Global AGENTS conflict:** instalasi baru mungkin sudah memiliki aturan global. Merge blok routing dan marker; backup lalu minta konfirmasi sebelum replacement penuh.
 - **Todo lock conflict:** menjalankan install biasa dapat menulis ulang lockfile aman. Gunakan `npm ci`, bukan `npm install`, setelah lockfile aman ditempatkan.
 - **CLI/skill version:** Impeccable CLI `3.2.1` menghasilkan/mengelola skill metadata `3.9.1` pada instalasi aktif; bukan mismatch yang harus “diperbaiki”.
+- **HyperFrames integrity:** installer nyata dan wrapper membandingkan `npm view hyperframes@0.7.54 dist.integrity` dengan SHA-512 manifest sebelum npx; dry-run hanya memvalidasi format pin agar CI static tetap tanpa network install.
 
 ## Path yang dilarang masuk repository
 
@@ -127,11 +130,22 @@ Pilihan paling reproducible: **checkout commit upstream lalu bawa/gunakan lockfi
 - Source checkout besar: seluruh `git/`, seluruh `vendor/`, `.git` vendor. Hanya source terpilih yang diambil ulang dari commit terkunci.
 - Recovery/archive: seluruh `backups/`, termasuk patch Todo Tools; hanya hash dan lokasi provenance dicatat.
 
+## HyperFrames integration
+
+- Source: `https://github.com/heygen-com/hyperframes.git`
+- Commit: `ccf5f20b3beea2b245c398a89cb686077b546de2`
+- CLI: `hyperframes@0.7.54`; Node.js 22+
+- Pi format: native Agent Skills under `skills/<name>/SKILL.md`
+- Selection: exactly 20 upstream skills from `manifest/hyperframes-selection.json`
+- Runtime verified: FFmpeg/FFprobe 8.1.2 user-local and HyperFrames Chrome Headless Shell
+- Entry command: `/skill:hyperframes`; run `lint` and `check` before render
+- Setup evidence: `HYPERFRAMES_SETUP.md`
+
 ## Status MISSING dan risiko tersisa
 
 - Komponen wajib MISSING: **tidak ada**.
-- `PI_HOME` absolut pada manifest merupakan metadata mesin audit, bukan secret, tetapi tetap path lokal dan perlu dinormalisasi saat installer dibuat.
+- `PI_HOME` pada manifest sudah dinormalisasi menjadi ekspresi dinamis dan tidak mengikat installer ke home mesin audit.
 - Instalasi ulang Impeccable CLI `3.2.1` perlu diuji kelak untuk memastikan masih menghasilkan skill `3.9.1`; registry dapat berubah walau CLI dipin.
-- Lockfile aman Todo Tools belum menjadi payload repository karena Phase 1 hanya mengizinkan empat file keluaran. Fase installer perlu menambahkan artefak lockfile terverifikasi atau mekanisme patch yang hash-checked.
+- Lockfile aman Todo Tools kini dibundel sebagai `payload/todotools/package-lock.json`, dikunci SHA-256, dan diterapkan sebelum `npm ci --ignore-scripts --omit=dev`.
 - Checkout AstralForge memiliki tiga report termodifikasi yang tidak relevan; jangan gunakan working tree vendor sebagai payload utuh.
 - Verifikasi awal yang salah dijalankan dari root repository gagal dengan `ENOLOCK`/`ENOENT`; command kemudian dijalankan ulang dari checkout Todo Tools dan lulus. Tidak ada source yang berubah.

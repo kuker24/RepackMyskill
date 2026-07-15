@@ -318,6 +318,96 @@ copy_tree_safe() {
   cp -a --no-dereference -- "$source"/. "$destination"/
 }
 
+assert_no_symlink_parents() {
+  local target=$1
+  assert_within_pi_home "$target"
+  python3 - "$PI_HOME" "$target" <<'PY'
+from pathlib import Path
+import sys
+root=Path(sys.argv[1]).resolve(strict=False)
+target=Path(sys.argv[2]).expanduser()
+if not target.is_absolute(): target=target.absolute()
+try: rel=target.relative_to(root)
+except ValueError: raise SystemExit(f'Path keluar dari PI_HOME: {target}')
+parent=root
+for part in rel.parts[:-1]:
+ parent=parent/part
+ if parent.is_symlink(): raise SystemExit(f'Parent symlink ditolak: {parent}')
+PY
+}
+
+sync_source_owned_tree() {
+  local source=$1 destination=$2 source_file relative target
+  [[ -d "$source" && ! -L "$source" ]] || die "Sumber bukan direktori aman: $source"
+  if find "$source" -type l -print -quit | grep -q .; then
+    die "Symlink dalam source tree ditolak: $source"
+  fi
+  assert_no_symlink_parents "$destination"
+  [[ ! -L "$destination" ]] || die "Target symlink ditolak: $destination"
+  # Record destination root before any overlay or stale-file removal. Rollback
+  # can then restore both managed paths and destination-only user files.
+  transaction_record_path "$destination"
+  while IFS= read -r -d '' source_file; do
+    relative=${source_file#"$source/"}
+    target="$destination/$relative"
+    assert_no_symlink_parents "$target"
+    [[ ! -L "$target" ]] || die "Target symlink ditolak: $target"
+    atomic_copy_file "$source_file" "$target"
+  done < <(find "$source" -type f -print0 | LC_ALL=C sort -z)
+}
+
+prune_stale_source_owned_tree() {
+  local source=$1 destination=$2 state=$3 state_key=$4 row relative expected target current
+  [[ -f "$state" && ! -L "$state" ]] || return 0
+  [[ -d "$source" && ! -L "$source" ]] || die "Sumber bukan direktori aman: $source"
+  if find "$source" -type l -print -quit | grep -q .; then
+    die "Symlink dalam source tree ditolak: $source"
+  fi
+  while IFS=$'\t' read -r relative expected; do
+    [[ -n "$relative" ]] || continue
+    target="$PI_HOME/$relative"
+    if [[ -L "$target" ]]; then
+      log_warn "File stale terkelola adalah symlink; dipertahankan: $relative"
+      continue
+    fi
+    [[ -e "$target" ]] || continue
+    if ! assert_no_symlink_parents "$target"; then
+      log_warn "File stale terkelola memiliki parent symlink; dipertahankan: $relative"
+      continue
+    fi
+    current=$(path_digest "$target")
+    if [[ "$current" == "$expected" ]]; then
+      transaction_record_path "$target"
+      safe_remove_path "$target"
+    else
+      log_warn "File stale terkelola berubah oleh pengguna; dipertahankan: $relative"
+    fi
+  done < <(python3 - "$source" "$destination" "$state" "$state_key" "$PI_HOME" <<'PY'
+import json,re,sys
+from pathlib import Path, PurePosixPath
+source,destination,state=map(Path,sys.argv[1:4]); keys=sys.argv[4].split(','); pi=Path(sys.argv[5]).resolve(strict=False)
+try: destination_relative=destination.relative_to(pi).as_posix()
+except ValueError: raise SystemExit(f'Destination keluar dari PI_HOME: {destination}')
+current=set()
+for path in source.rglob('*'):
+ if path.is_symlink(): raise SystemExit(f'Symlink dalam source tree ditolak: {path}')
+ if path.is_file(): current.add(f'{destination_relative}/{path.relative_to(source).as_posix()}')
+data=json.loads(state.read_text())
+for key in keys:
+ for item in data.get(key,[]):
+  if not isinstance(item,dict): raise SystemExit(f'Entry state {key} tidak valid')
+  relative=item.get('path'); expected=item.get('sha256')
+  if not isinstance(relative,str) or not isinstance(expected,str) or not re.fullmatch(r'[0-9a-f]{64}',expected):
+   raise SystemExit(f'Entry state {key} tidak valid')
+  path=PurePosixPath(relative)
+  if path.is_absolute() or '..' in path.parts or '\t' in relative or '\n' in relative:
+   raise SystemExit(f'Path state {key} tidak aman: {relative!r}')
+  if not relative.startswith(destination_relative+'/') or relative in current: continue
+  print(f'{relative}\t{expected}')
+PY
+)
+}
+
 upsert_marked_block() {
   local target=$1 fragment=$2
   [[ -f "$fragment" && ! -L "$fragment" ]] || die "Fragment marker tidak aman: $fragment"
@@ -430,6 +520,17 @@ from hashlib import sha256
 from pathlib import Path
 manifest,root,state,dry=Path(sys.argv[1]),Path(sys.argv[2]),Path(sys.argv[3]),sys.argv[4]=='1'
 x=json.loads(manifest.read_text())
+root=root.resolve(strict=False)
+def rollback_target(rel):
+ target=root/rel
+ parent=root
+ for part in rel.parts[:-1]:
+  parent=parent/part
+  if parent.is_symlink(): raise RuntimeError(f'Symlink parent ditolak: {parent}')
+ resolved=target.resolve(strict=False)
+ try: resolved.relative_to(root)
+ except ValueError: raise RuntimeError(f'Target rollback keluar dari PI_HOME: {target}')
+ return target
 def digest(path):
  if not path.exists(): return None
  if path.is_symlink(): raise RuntimeError(f'Symlink target: {path}')
@@ -440,12 +541,15 @@ def digest(path):
   if q.is_symlink(): h.update(rel+b'\0link\0'+q.readlink().as_posix().encode()+b'\n')
   elif q.is_file(): h.update(rel+b'\0file\0'+sha256(q.read_bytes()).hexdigest().encode()+b'\n')
  return h.hexdigest()
+for e in x['entries']:
+ rollback_target(Path(e['path']))
 for e in reversed(x['entries']):
- rel=Path(e['path']); target=root/rel; expected=e.get('installed_sha256'); current=digest(target)
+ rel=Path(e['path']); target=rollback_target(rel); expected=e.get('installed_sha256'); current=digest(target)
  if current != expected:
   print(f'WARN\t{rel}\tmodified; preserved', file=sys.stderr); continue
  print(f'RESTORE\t{rel}')
  if dry: continue
+ target=rollback_target(rel)
  if target.exists():
   if target.is_dir(): shutil.rmtree(target)
   else: target.unlink()

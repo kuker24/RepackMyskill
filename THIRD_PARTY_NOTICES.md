@@ -11,5 +11,7 @@ RepackMyskill mengatur instalasi komponen berikut. Source pihak ketiga tetap mil
 | AstralForge Senior Engineer Skills | https://github.com/kuker24/AstralForge-Senior-Engineer-Skills.git | commit `3f59d793a2691a95e63355f91adaeb72a7120fac` | Clone temporary; salin tepat 16 skill | License verification required; tidak ditemukan file license root pada checkout audit |
 | Matt Pocock Skills | https://github.com/mattpocock/skills.git | commit `391a2701dd948f94f56a39f7533f8eea9a859c87` | Clone temporary; salin hanya `grill-me` dan `grilling` | MIT, dari `LICENSE.md` checkout terkunci |
 | Impeccable | `npm:impeccable` | CLI `3.2.1`; skill audit `3.9.1` | `npx --yes impeccable@3.2.1 skills install -y --providers=pi --scope=global --no-hooks` | Apache 2.0, dari metadata `skills/impeccable/SKILL.md` audit |
+| HyperFrames | https://github.com/heygen-com/hyperframes.git / `npm:hyperframes` | commit `ccf5f20b3beea2b245c398a89cb686077b546de2`; CLI `0.7.54` | Clone temporary, salin tepat 20 Agent Skills native; wrapper `npx --yes hyperframes@0.7.54` | Apache 2.0, dari `LICENSE` checkout terkunci |
+| FFmpeg user-local runtime | https://github.com/BtbN/FFmpeg-Builds/releases | `n8.1.2` build detected during setup | Binary user-local verified against release checksum; binary tidak dibundel RepackMyskill | GPLv3 build; upstream FFmpeg licensing applies |
 
 Lockfile dan patch Todo Tools dalam `payload/todotools/` merupakan artefak reproduksi/audit untuk source pihak ketiga, bukan perubahan kepemilikan atau lisensi.

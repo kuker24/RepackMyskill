@@ -28,6 +28,16 @@ for p in root.rglob('*'):
  if any(re.search(rx,text,re.I) for rx in patterns): raise SystemExit(f'secret-like content: {p}')
 x=json.loads((root/'manifest/astral-selection.json').read_text())
 assert len(x['skills'])==16 and len({s['destination_name'] for s in x['skills']})==16
+h=json.loads((root/'manifest/hyperframes-selection.json').read_text())
+assert len(h['skills'])==20 and len(set(h['skills']))==20
+assert h['cli']['package']=='hyperframes' and h['cli']['version']=='0.7.54' and h['commit']=='ccf5f20b3beea2b245c398a89cb686077b546de2'
+assert re.fullmatch(r'sha512-[A-Za-z0-9+/]+={0,2}', h['cli']['integrity'])
+extension=(root/'payload/custom/extensions/fable-agent-compat/index.ts').read_text()
+for needle in ('pi.on("tool_call"', 'String(event.toolName).toLowerCase() !== "agent"', '"fable-luna"', '"fable-sol"', '"fable-terra"', 'delete input.isolation'):
+ assert needle in extension, f'missing Fable Agent Compatibility behavior: {needle}'
+lock=json.loads((root/'manifest/source-lock.json').read_text())
+assert 'extensions/fable-agent-compat/index.ts' in lock['custom_files']
+assert any(item['path']=='extensions/fable-agent-compat' for item in lock['custom_directories'])
 block=(root/'payload/managed/AGENTS.repack.md').read_text()
 assert block.count('<!-- REPACKMYSKILL:START -->')==1
 assert block.count('<!-- REPACKMYSKILL:END -->')==1

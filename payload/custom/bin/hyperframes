@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+PACKAGE='hyperframes'
+VERSION='0.7.54'
+INTEGRITY='sha512-WP5TFPQpMMMNcYehjxwVIAgmIHSGrxiqosLsZNqOq5n+4q/4umOMnEcfqmsa3/GCX+TWtYVlcPTMbwpK/J40Ew=='
+actual_integrity=$(npm view "$PACKAGE@$VERSION" dist.integrity)
+[[ "$actual_integrity" == "$INTEGRITY" ]] || {
+  printf 'HyperFrames npm integrity mismatch for %s@%s\n' "$PACKAGE" "$VERSION" >&2
+  exit 1
+}
+
+export HYPERFRAMES_NO_TELEMETRY=1
+export HYPERFRAMES_NO_UPDATE_CHECK=1
+exec npx --yes "$PACKAGE@$VERSION" "$@"

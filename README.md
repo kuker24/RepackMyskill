@@ -8,7 +8,7 @@ Installer reproducible untuk konfigurasi publik [Pi Coding Agent](https://github
 - Payload custom dengan SHA-256 sebelum perubahan target.
 - Backup manifest, state atomik, rollback filesystem, dan uninstall konservatif.
 - Merge `AGENTS.md` berbasis marker; isi pengguna di luar block dipertahankan.
-- 16 skill AstralForge terseleksi, Grill Me + Grilling, Todo Tools lockfile aman, dan Impeccable pinned.
+- 16 skill AstralForge terseleksi, 20 skill HyperFrames native, Grill Me + Grilling, Todo Tools lockfile aman, dan Impeccable pinned.
 - `doctor.sh` read-only dengan output manusia atau JSON.
 - Test sandbox memakai `HOME` dan `PI_CODING_AGENT_DIR` sementara.
 
@@ -18,8 +18,8 @@ Installer reproducible untuk konfigurasi publik [Pi Coding Agent](https://github
 |---|---|
 | Pi packages | `pi-9router-ext@0.2.2`, `@tintinweb/pi-subagents@0.13.0`, `pi-plan-extension@0.1.0`, Todo Tools commit `93ba67e…` |
 | Workflow | Fable Core/Auto, Peta Auto, Senior Engineer Auto, Luna/Sol/Terra |
-| Plan Mode | `pi-plan-extension` dan Fable Plan Guard runtime |
-| Skills | 16 AstralForge skill berprefix `astral-`, `grill-me`, `grilling`, Impeccable |
+| Plan Mode | `pi-plan-extension`, Fable Plan Guard, dan Fable Agent Compatibility runtime |
+| Skills | 16 AstralForge, 20 HyperFrames, `grill-me`, `grilling`, Impeccable |
 | Prompts | `/f5`, `/fl`, `/fs`, `/ft`, `/peta-auto`, `/senior-auto`, `/impeccable`, `/grill-me` |
 
 Pin lengkap: [`docs/INVENTORY.md`](docs/INVENTORY.md), [`manifest/source-lock.json`](manifest/source-lock.json), dan [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
@@ -28,7 +28,8 @@ Pin lengkap: [`docs/INVENTORY.md`](docs/INVENTORY.md), [`manifest/source-lock.js
 
 - Pi Coding Agent dengan command `pi`
 - Bash, Git, Python 3, `sha256sum`
-- Node.js 20+
+- Node.js 22+
+- FFmpeg 7+, FFprobe, dan Chrome/Chromium untuk HyperFrames render
 - npm dan npx
 - Akses jaringan ke npm dan source Git yang dipin untuk instalasi penuh
 
@@ -93,6 +94,9 @@ Detail: [`docs/INSTALL.md`](docs/INSTALL.md).
 /impeccable
 /grill-me
 /plan
+/skill:hyperframes
+/skill:motion-graphics
+/skill:website-to-video
 ```
 
 ## Keamanan
@@ -102,12 +106,16 @@ Detail: [`docs/INSTALL.md`](docs/INSTALL.md).
 - Backup timestamped memiliki `manifest.json` berisi file lama, file baru, checksum, dan package yang baru dipasang pada operasi.
 - State atomik berada pada `$PI_HOME/.repackmyskill/state.json` dan tidak memuat credential.
 - Todo Tools memakai lockfile aman terverifikasi, `npm ci --ignore-scripts --omit=dev`, dan audit npm high/critical.
+- HyperFrames memakai 20 skill native dari commit pinned `ccf5f20b…`; installer dan wrapper memeriksa SHA-512 npm untuk CLI `0.7.54` sebelum eksekusi. Jalankan `hyperframes lint` dan `hyperframes check` sebelum render.
+- Fable Agent Compatibility menghapus isolation worktree yang dipaksakan upstream hanya untuk Luna, Sol, dan Terra; tipe Agent lain tidak berubah.
 - Tidak menjalankan `npm audit fix --force`, `git reset --hard`, force push, atau login.
 - Tidak menyentuh `auth.json`, `settings.json` user selain metadata package yang Pi sendiri kelola, `9router-config.json`, session, cache, atau seluruh `PI_HOME`.
 
 ## Troubleshooting
 
-**`Node.js minimal versi 20`** — perbarui Node.js, lalu ulangi dry-run.
+**`Node.js minimal versi 22`** — perbarui Node.js, lalu ulangi dry-run.
+
+**FFmpeg/FFprobe atau integrity HyperFrames gagal** — pasang FFmpeg 7+ beserta FFprobe, lalu periksa koneksi npm dan pin manifest. Jangan melewati check dengan mengganti versi CLI.
 
 **Checksum payload gagal** — hentikan. Checkout ulang repository dari source tepercaya; jangan ubah manifest untuk menutupi perubahan.
 

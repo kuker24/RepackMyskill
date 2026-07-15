@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: ShellCheck
@@ -40,5 +40,23 @@ jobs:
             *) printf 'CI Pi stub supports dry-run validation only\n' >&2; exit 1 ;;
           esac
           EOF
-          chmod +x .ci-bin/pi
+          cat > .ci-bin/ffmpeg <<'EOF'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          if [[ "${1:-}" == "-version" ]]; then
+            printf 'ffmpeg version 7.1.0-ci\n'
+            exit 0
+          fi
+          exit 1
+          EOF
+          cat > .ci-bin/ffprobe <<'EOF'
+          #!/usr/bin/env bash
+          set -Eeuo pipefail
+          if [[ "${1:-}" == "-version" ]]; then
+            printf 'ffprobe version 7.1.0-ci\n'
+            exit 0
+          fi
+          exit 1
+          EOF
+          chmod +x .ci-bin/pi .ci-bin/ffmpeg .ci-bin/ffprobe
           PATH="$PWD/.ci-bin:$PATH" bash install.sh --dry-run --yes

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "generated_at": "2026-07-12T05:19:29+07:00",
-  "pi_home": "/home/fahmiagent/.pi/agent",
+  "pi_home": "${PI_CODING_AGENT_DIR:-$HOME/.pi/agent}",
   "packages": [
     {
       "id": "pi-9router-ext",
@@ -97,6 +97,38 @@
       "cli_version": "3.2.1",
       "skill_version": "3.9.1",
       "install_command": "npx impeccable@3.2.1 skills install -y --providers=pi --scope=global --no-hooks"
+    },
+    {
+      "id": "hyperframes",
+      "url": "https://github.com/heygen-com/hyperframes.git",
+      "commit": "ccf5f20b3beea2b245c398a89cb686077b546de2",
+      "source_path": null,
+      "selection": [
+        "skills/embedded-captions",
+        "skills/faceless-explainer",
+        "skills/figma",
+        "skills/general-video",
+        "skills/hyperframes",
+        "skills/hyperframes-animation",
+        "skills/hyperframes-cli",
+        "skills/hyperframes-core",
+        "skills/hyperframes-creative",
+        "skills/hyperframes-keyframes",
+        "skills/hyperframes-registry",
+        "skills/media-use",
+        "skills/motion-graphics",
+        "skills/music-to-video",
+        "skills/pr-to-video",
+        "skills/product-launch-video",
+        "skills/remotion-to-hyperframes",
+        "skills/slideshow",
+        "skills/talking-head-recut",
+        "skills/website-to-video"
+      ],
+      "status": "FOUND",
+      "cli_version": "0.7.54",
+      "cli_integrity": "sha512-WP5TFPQpMMMNcYehjxwVIAgmIHSGrxiqosLsZNqOq5n+4q/4umOMnEcfqmsa3/GCX+TWtYVlcPTMbwpK/J40Ew==",
+      "local_transform": "Copy each selected upstream skill directory unchanged to skills/<name>; install pinned CLI wrapper at bin/hyperframes."
     }
   ],
   "custom_files": [
@@ -106,6 +138,7 @@
     "agents/fable-sol.md",
     "agents/fable-terra.md",
     "extensions/fable-plan-guard/index.ts",
+    "extensions/fable-agent-compat/index.ts",
     "prompts/f5.md",
     "prompts/fl.md",
     "prompts/fs.md",
@@ -119,7 +152,9 @@
     "skills/fable-core/SKILL.md",
     "skills/fable-auto/SKILL.md",
     "skills/peta-auto/SKILL.md",
-    "skills/senior-engineer-auto/SKILL.md"
+    "skills/senior-engineer-auto/SKILL.md",
+    "bin/hyperframes",
+    "HYPERFRAMES_SETUP.md"
   ],
   "custom_directories": [
     {
@@ -132,6 +167,12 @@
     },
     {
       "path": "extensions/fable-plan-guard",
+      "selection": [
+        "index.ts"
+      ]
+    },
+    {
+      "path": "extensions/fable-agent-compat",
       "selection": [
         "index.ts"
       ]
@@ -197,7 +238,9 @@
     "npx",
     "git",
     "sha256sum",
-    "jq or python3"
+    "jq or python3",
+    "ffmpeg",
+    "ffprobe"
   ],
   "required_runtime": {
     "pi_coding_agent": {
@@ -205,7 +248,7 @@
       "audited_version": "0.80.6"
     },
     "node": {
-      "minimum_version": "20.0.0",
+      "minimum_version": "22.0.0",
       "audited_version": "24.18.0"
     },
     "npm": {
@@ -218,7 +261,11 @@
         "required": false,
         "default": "$HOME/.pi/agent"
       }
-    ]
+    ],
+    "ffmpeg": {
+      "minimum_version": "7.0.0",
+      "installation": "user-local or system package; never bundle binary"
+    }
   },
   "security_requirements": [
     "Never copy or print API keys, tokens, credentials, passwords, cookies, Authorization headers, 9Router account configuration, session history, conversation logs, caches, backups, runtime databases, or private user data.",
@@ -228,7 +275,9 @@
     "For pi-todotools, verify the safe lockfile SHA-256 before npm ci; never run npm audit fix --force.",
     "For AstralForge and Matt Pocock sources, extract only the listed skill directories.",
     "During Plan Mode planning phase, fable-plan-guard must block Agent and any tool name containing subagent.",
-    "Merge AGENTS.md safely and preserve FABLE-WORKFLOW-INTEGRATION marker blocks."
+    "fable-agent-compat must remove forced Agent isolation only for fable-luna, fable-sol, and fable-terra before execution.",
+    "Merge AGENTS.md safely and preserve FABLE-WORKFLOW-INTEGRATION marker blocks.",
+    "For HyperFrames, require FFmpeg 7+ and FFprobe before mutation; install exactly 20 selected native Agent Skills from the pinned commit; verify npm dist.integrity for pinned CLI 0.7.54 before execution; never bundle credentials, generated media, browser cache, or FFmpeg binaries."
   ],
   "verification_commands": [
     {
