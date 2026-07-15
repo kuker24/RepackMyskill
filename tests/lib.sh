@@ -10,7 +10,7 @@ snapshot_tree() {
     # file, including AGENTS, settings, package metadata and Git sources,
     # remains checksum-protected.
     (
-      cd "$root"
+      cd "$root" || exit 1
       find . -xdev \
         \( -path './sessions' -o -path './sessions/*' -o \
            -path './logs' -o -path './logs/*' -o \

@@ -37,7 +37,9 @@ FAIL_COUNT=0
 record() {
   local status=$1 check=$2 detail=$3
   printf '%s\t%s\t%s\n' "$status" "$check" "$detail" >> "$RESULTS"
-  [[ "$status" == FAIL ]] && ((FAIL_COUNT+=1)) || true
+  if [[ "$status" == FAIL ]]; then
+    FAIL_COUNT=$((FAIL_COUNT + 1))
+  fi
 }
 
 check_command() {

@@ -20,7 +20,7 @@ jobs:
       - name: Install ShellCheck
         run: sudo apt-get update && sudo apt-get install -y shellcheck
       - name: ShellCheck
-        run: shellcheck install.sh doctor.sh update.sh uninstall.sh rollback.sh scripts/lib/*.sh tests/*.sh
+        run: shellcheck -x install.sh doctor.sh update.sh uninstall.sh rollback.sh scripts/lib/*.sh tests/*.sh
       - name: Static tests
         run: bash tests/test-static.sh
       - name: Shell syntax

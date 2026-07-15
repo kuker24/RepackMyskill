@@ -3,7 +3,6 @@ set -Eeuo pipefail
 
 ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 DRY_RUN=0
-ASSUME_YES=0
 ARGS=()
 TEMP_DIR=''
 BACKUP_DIR=''
@@ -31,7 +30,7 @@ EOF
 while (($#)); do
   case "$1" in
     --dry-run) DRY_RUN=1; ARGS+=(--dry-run) ;;
-    --yes) ASSUME_YES=1; ARGS+=(--yes) ;;
+    --yes) ARGS+=(--yes) ;;
     --skip-impeccable|--skip-astral|--skip-grill) ARGS+=("$1") ;;
     --help|-h) usage; exit 0 ;;
     *) usage >&2; die "Opsi tidak dikenal: $1" ;;

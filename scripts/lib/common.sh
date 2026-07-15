@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 # Shared RepackMyskill lifecycle helpers. Source from top-level scripts only.
 
+# These constants are consumed by scripts that source this library.
+# shellcheck disable=SC2034
 REPACK_SCHEMA_VERSION='1.0.0'
+# shellcheck disable=SC2034
 REPACK_INSTALLER_VERSION='1.0.0'
+# shellcheck disable=SC2034
 REPACK_MARKER_START='<!-- REPACKMYSKILL:START -->'
+# shellcheck disable=SC2034
 REPACK_MARKER_END='<!-- REPACKMYSKILL:END -->'
 REPACK_STATE_REL='.repackmyskill/state.json'
 
@@ -148,7 +153,6 @@ transaction_begin() {
   local operation=$1
   TX_OPERATION=$operation
   TX_ACTIVE=1
-  TX_FAILED=0
   TX_ENTRIES_FILE="$BACKUP_DIR/.entries.tsv"
   TX_PACKAGES_FILE="$BACKUP_DIR/.packages.tsv"
   mkdir -p -- "$BACKUP_DIR/files"
@@ -169,7 +173,11 @@ transaction_record_path() {
   fi
   if [[ -e "$source" ]]; then
     existed=true
-    [[ -f "$source" ]] && kind=file || kind=directory
+    if [[ -f "$source" ]]; then
+      kind='file'
+    else
+      kind='directory'
+    fi
     old_digest=$(path_digest "$source")
     backup="$BACKUP_DIR/files/$relative"
     if [[ "${DRY_RUN:-0}" == 1 ]]; then
@@ -357,7 +365,7 @@ sync_source_owned_tree() {
 }
 
 prune_stale_source_owned_tree() {
-  local source=$1 destination=$2 state=$3 state_key=$4 row relative expected target current
+  local source=$1 destination=$2 state=$3 state_key=$4 relative expected target current
   [[ -f "$state" && ! -L "$state" ]] || return 0
   [[ -d "$source" && ! -L "$source" ]] || die "Sumber bukan direktori aman: $source"
   if find "$source" -type l -print -quit | grep -q .; then

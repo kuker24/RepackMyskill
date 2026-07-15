@@ -7,7 +7,13 @@ ROOT_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 source "$ROOT_DIR/tests/lib.sh"
 active_snapshot_begin
 init_sandbox
-trap 'status=$?; active_snapshot_assert; cleanup_sandbox; exit "$status"' EXIT
+cleanup_install_test() {
+  local status=$?
+  active_snapshot_assert
+  cleanup_sandbox
+  return "$status"
+}
+trap cleanup_install_test EXIT
 sandbox_env
 mkdir -p -- "$TEST_SANDBOX_PI_HOME/skills/hyperframes"
 printf 'user HyperFrames note\n' > "$TEST_SANDBOX_PI_HOME/skills/hyperframes/notes.md"
